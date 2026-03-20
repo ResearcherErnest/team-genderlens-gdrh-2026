@@ -1,0 +1,264 @@
+/* ============================================================
+   GenderLens RW — Premium Dark Glassmorphism Theme
+   ============================================================ */
+
+/* ---------- Google Fonts ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ---------- Root variables ---------- */
+:root {
+    --gl-bg-primary: #d6dcea;
+    --gl-bg-secondary: #1E293B;
+    --gl-bg-card: rgba(30, 41, 59, 0.7);
+    --gl-border: rgba(148, 163, 184, 0.15);
+    --gl-text-primary: #E2E8F0;
+    --gl-text-secondary: #94A3B8;
+    --gl-accent: #7C3AED;
+    --gl-accent-light: #A78BFA;
+    --gl-success: #10B981;
+    --gl-warning: #F59E0B;
+    --gl-danger: #EF4444;
+    --gl-gradient-start: #7C3AED;
+    --gl-gradient-end: #2563EB;
+    --gl-glass-bg: rgba(30, 41, 59, 0.6);
+    --gl-glass-border: rgba(148, 163, 184, 0.12);
+    --gl-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --gl-radius: 16px;
+    --gl-radius-sm: 10px;
+    --gl-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---------- Global resets ---------- */
+html, body, [data-testid="stAppViewContainer"] {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    color: var(--gl-text-primary);
+}
+
+/* ---------- Glassmorphism card mixin ---------- */
+.glass-card,
+[data-testid="stMetric"],
+[data-testid="stExpander"] {
+    background: var(--gl-glass-bg) !important;
+    backdrop-filter: blur(16px) saturate(1.8);
+    -webkit-backdrop-filter: blur(16px) saturate(1.8);
+    border: 1px solid var(--gl-glass-border) !important;
+    border-radius: var(--gl-radius) !important;
+    box-shadow: var(--gl-glass-shadow);
+    transition: var(--gl-transition);
+}
+
+.glass-card:hover,
+[data-testid="stMetric"]:hover {
+    border-color: var(--gl-accent-light) !important;
+    box-shadow: 0 8px 40px rgba(124, 58, 237, 0.15);
+    transform: translateY(-2px);
+}
+
+/* ---------- Metric cards ---------- */
+[data-testid="stMetric"] {
+    padding: 1.25rem 1.5rem !important;
+}
+
+[data-testid="stMetric"] label {
+    color: var(--gl-text-secondary) !important;
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+[data-testid="stMetric"] [data-testid="stMetricValue"] {
+    font-weight: 700 !important;
+    font-size: 2rem !important;
+    background: linear-gradient(135deg, var(--gl-gradient-start), var(--gl-gradient-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ---------- Buttons ---------- */
+.stButton > button {
+    background: linear-gradient(135deg, var(--gl-gradient-start), var(--gl-gradient-end)) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: var(--gl-radius-sm) !important;
+    padding: 0.6rem 1.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    letter-spacing: 0.02em;
+    transition: var(--gl-transition);
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+}
+
+.stButton > button:hover {
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5) !important;
+    transform: translateY(-2px);
+}
+
+/* ---------- Text input / search ---------- */
+.stTextInput > div > div > input {
+    background: var(--gl-glass-bg) !important;
+    border: 1px solid var(--gl-glass-border) !important;
+    border-radius: var(--gl-radius-sm) !important;
+    color: var(--gl-text-primary) !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    transition: var(--gl-transition);
+}
+
+.stTextInput > div > div > input:focus {
+    border-color: var(--gl-accent) !important;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2) !important;
+}
+
+/* ---------- Sidebar ---------- */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0F172A 0%, #1a1f3a 100%) !important;
+    border-right: 1px solid var(--gl-glass-border) !important;
+}
+
+[data-testid="stSidebar"] .stMarkdown h1,
+[data-testid="stSidebar"] .stMarkdown h2,
+[data-testid="stSidebar"] .stMarkdown h3 {
+    color: var(--gl-accent-light) !important;
+}
+
+/* ---------- Selectbox / Multiselect ---------- */
+.stSelectbox > div > div,
+.stMultiSelect > div > div {
+    background: var(--gl-glass-bg) !important;
+    border: 1px solid var(--gl-glass-border) !important;
+    border-radius: var(--gl-radius-sm) !important;
+    color: var(--gl-text-primary) !important;
+}
+
+/* ---------- Tabs ---------- */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 4px;
+    background: var(--gl-bg-secondary);
+    border-radius: var(--gl-radius-sm);
+    padding: 4px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: 8px !important;
+    color: var(--gl-text-secondary) !important;
+    font-weight: 500 !important;
+    transition: var(--gl-transition);
+}
+
+.stTabs [aria-selected="true"] {
+    background: linear-gradient(135deg, var(--gl-gradient-start), var(--gl-gradient-end)) !important;
+    color: white !important;
+}
+
+/* ---------- Expander ---------- */
+[data-testid="stExpander"] {
+    padding: 0.25rem 0 !important;
+}
+
+[data-testid="stExpander"] summary {
+    font-weight: 600 !important;
+    color: var(--gl-text-primary) !important;
+}
+
+/* ---------- Dataframe ---------- */
+[data-testid="stDataFrame"] {
+    border-radius: var(--gl-radius-sm) !important;
+    overflow: hidden;
+}
+
+/* ---------- Progress bar ---------- */
+.stProgress > div > div > div {
+    background: linear-gradient(90deg, var(--gl-gradient-start), var(--gl-gradient-end)) !important;
+    border-radius: 100px !important;
+}
+
+/* ---------- Divider ---------- */
+hr {
+    border-color: var(--gl-glass-border) !important;
+    margin: 2rem 0 !important;
+}
+
+/* ---------- Badge helpers (used in st.markdown) ---------- */
+.quality-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.badge-good {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34D399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #FBBF24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-critical {
+    background: rgba(239, 68, 68, 0.15);
+    color: #F87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* ---------- Hero section ---------- */
+.hero-title {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #A78BFA, #7C3AED, #2563EB);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--gl-text-secondary);
+    font-weight: 400;
+    line-height: 1.6;
+    max-width: 600px;
+}
+
+/* ---------- Animations ---------- */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-in {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--gl-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gl-bg-secondary);
+    border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gl-accent);
+}
