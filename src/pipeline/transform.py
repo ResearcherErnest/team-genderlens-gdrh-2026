@@ -12,6 +12,8 @@ from typing import Optional, Tuple
 
 import pandas as pd
 
+from src.schema_config import ORGANIZATION_ALIASES
+
 logger = logging.getLogger(__name__)
 
 
@@ -77,6 +79,31 @@ def build_search_text(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def normalize_organization(df: pd.DataFrame) -> pd.DataFrame:
+    """Replace verbose organization names with canonical abbreviations.
+
+    The original name is preserved in ``organization_full``.  Rules are
+    defined in ``src.schema_config.ORGANIZATION_ALIASES`` — edit there,
+    not here.
+    """
+    if "organization" not in df.columns:
+        return df
+
+    df["organization_full"] = df["organization"]
+
+    def _abbreviate(name: str) -> str:
+        if not isinstance(name, str):
+            return name
+        name_lower = name.lower()
+        for fragment, abbr in ORGANIZATION_ALIASES:
+            if fragment.lower() in name_lower:
+                return abbr
+        return name  # unchanged when no rule matches
+
+    df["organization"] = df["organization"].apply(_abbreviate)
+    return df
+
+
 def parse_quality_flags(df: pd.DataFrame) -> pd.DataFrame:
     """Split semicolon-separated quality_flags into a list column."""
     if "quality_flags" in df.columns:
@@ -106,10 +133,13 @@ def transform(
     df = join_quality(df, quality)
     logger.info("After quality join: %d rows", len(df))
 
-    # Step 3: build search text
+    # Step 3: normalize organization names to abbreviations
+    df = normalize_organization(df)
+
+    # Step 4: build search text (uses the abbreviated organization)
     df = build_search_text(df)
 
-    # Step 4: parse quality flags
+    # Step 5: parse quality flags
     df = parse_quality_flags(df)
 
     logger.info("Transformation complete: %d rows × %d cols", len(df), len(df.columns))

@@ -11,21 +11,17 @@ from datetime import datetime
 
 import pandas as pd
 
+from src.schema_config import METADATA_FIELDS, QUALITY_WEIGHTS
+
 logger = logging.getLogger(__name__)
 
 # --- Constants ---
 CURRENT_YEAR = datetime.now().year
 
-# Metadata fields expected to be present for a "complete" study
-METADATA_FIELDS = [
-    "title", "year", "organization", "url", "abstract",
-    "quality_flags", "get_microdata_url",
-]
-
-# Weights for composite trust score
-WEIGHT_COMPLETENESS = 0.40
-WEIGHT_FRESHNESS = 0.30
-WEIGHT_RESOURCES = 0.30
+# Weights for composite trust score (from schema_config)
+WEIGHT_COMPLETENESS = QUALITY_WEIGHTS["completeness"]
+WEIGHT_FRESHNESS = QUALITY_WEIGHTS["freshness"]
+WEIGHT_RESOURCES = QUALITY_WEIGHTS["resources"]
 
 
 # --- Scoring functions ---

@@ -1,8 +1,9 @@
 """
-🛡️ Data Quality — Quality observatory page.
+Data Quality — Quality observatory page.
 """
 
 import streamlit as st
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
@@ -38,12 +39,12 @@ def get_data():
 df = get_data()
 
 # --- Header ---
-st.markdown("# 🛡️ Data Quality Observatory")
+st.markdown("# Data Quality Observatory")
 st.markdown("Monitor and understand data quality across all studies")
 st.markdown("---")
 
 # --- Traffic-light overview ---
-st.markdown("### 🚦 Quality Overview")
+st.markdown("### Quality Overview")
 
 col1, col2, col3 = st.columns(3)
 for col, level in zip([col1, col2, col3], ["good", "warning", "critical"]):
@@ -68,7 +69,7 @@ for col, level in zip([col1, col2, col3], ["good", "warning", "critical"]):
 st.markdown("---")
 
 # --- Missing field analysis ---
-st.markdown("###Missing Field Analysis")
+st.markdown("### Missing Field Analysis")
 
 col_a, col_b = st.columns(2)
 
@@ -101,7 +102,7 @@ with col_b:
 st.markdown("---")
 
 # --- Quality flag breakdown ---
-st.markdown("### 🏷️ Quality Flag Breakdown")
+st.markdown("### Quality Flag Breakdown")
 
 all_flags = []
 for flags_list in df["quality_flags_list"]:
@@ -109,7 +110,6 @@ for flags_list in df["quality_flags_list"]:
         all_flags.extend(flags_list)
 
 if all_flags:
-    import pandas as pd
     flag_counts = pd.Series(all_flags).value_counts().reset_index()
     flag_counts.columns = ["flag", "count"]
 
@@ -129,7 +129,7 @@ else:
 st.markdown("---")
 
 # --- Per-study drill-down ---
-st.markdown("###Per-Study Quality Drill-Down")
+st.markdown("### Per-Study Quality Drill-Down")
 
 selected_study = st.selectbox(
     "Select a study",

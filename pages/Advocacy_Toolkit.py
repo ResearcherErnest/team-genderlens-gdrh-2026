@@ -1,5 +1,5 @@
 """
-📋 Advocacy Toolkit — Policy brief generator page.
+Advocacy Toolkit — Policy brief generator page.
 """
 
 import streamlit as st
@@ -31,12 +31,12 @@ def get_data():
 df = get_data()
 
 # --- Header ---
-st.markdown("# 📋 Advocacy Toolkit")
+st.markdown("# Advocacy Toolkit")
 st.markdown("Generate policy-ready briefs with citations, quality caveats, and data provenance")
 st.markdown("---")
 
 # --- Tabs ---
-tab1, tab2, tab3 = st.tabs(["📝 Policy Brief Generator", "📊 Data Export", "📚 Provenance Viewer"])
+tab1, tab2, tab3 = st.tabs(["Policy Brief Generator", "Data Export", "Provenance Viewer"])
 
 # --------------------------------------------------------------------
 # TAB 1: Policy Brief Generator
@@ -57,12 +57,12 @@ with tab1:
         key="advocacy_scenario",
     )
 
-    if st.button("🚀 Generate Policy Brief", key="gen_brief"):
+    if st.button("Generate Policy Brief", key="gen_brief"):
         row = df[df["title"] == selected_title].iloc[0]
         brief = generate_policy_brief(row, scenario=scenario.lower())
 
         st.markdown("---")
-        st.markdown("### 📄 Generated Policy Brief")
+        st.markdown("### Generated Policy Brief")
 
         # Display study quality summary
         col_q1, col_q2, col_q3 = st.columns(3)
@@ -83,7 +83,7 @@ with tab1:
 
         # Download button
         st.download_button(
-            "📥 Download Brief (.md)",
+            "Download Brief (.md)",
             data=brief,
             file_name=f"policy_brief_{row.get('study_id', 'unknown')}.md",
             mime="text/markdown",
@@ -93,13 +93,13 @@ with tab1:
 # TAB 2: Data Export
 # --------------------------------------------------------------------
 with tab2:
-    st.markdown("### 📊 Export Study Data")
+    st.markdown("### Export Study Data")
 
     st.markdown("Download a CSV summary of all studies with quality scores.")
 
     csv_data = export_studies_csv(df)
     st.download_button(
-        "📥 Download All Studies (CSV)",
+        "Download All Studies (CSV)",
         data=csv_data,
         file_name="genderlens_studies_export.csv",
         mime="text/csv",
@@ -107,7 +107,7 @@ with tab2:
 
     st.markdown("---")
 
-    st.markdown("### 📋 Comparison Report")
+    st.markdown("### Comparison Report")
     st.markdown("Select multiple studies to generate a comparison report.")
 
     selected_studies = st.multiselect(
@@ -123,7 +123,7 @@ with tab2:
         st.markdown(report)
 
         st.download_button(
-            "📥 Download Comparison Report (.md)",
+            "Download Comparison Report (.md)",
             data=report,
             file_name="genderlens_comparison_report.md",
             mime="text/markdown",
@@ -133,11 +133,11 @@ with tab2:
 # TAB 3: Provenance Viewer
 # --------------------------------------------------------------------
 with tab3:
-    st.markdown("### 📚 Data Provenance")
+    st.markdown("### Data Provenance")
     st.markdown("Review the source and citation information for each study.")
 
     for _, row in df.iterrows():
-        with st.expander(f"📖 {row.get('title', 'Untitled')}", expanded=False):
+        with st.expander(row.get('title', 'Untitled'), expanded=False):
             # Provenance note
             note = format_provenance_note(
                 title=row.get("title", ""),

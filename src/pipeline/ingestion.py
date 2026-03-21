@@ -2,7 +2,8 @@
 Ingestion Layer — Schema-validated CSV loading with type coercion.
 
 Supports both sample data (data/sample/) and full data (data/full-data.zip).
-Set env var GENDERLENS_DATA_MODE=full to use the full dataset.
+Set env var GENDERLENS_DATA_MODE=full|sample to override the default mode
+defined in schema_config.
 """
 
 from __future__ import annotations
@@ -15,18 +16,19 @@ from typing import Dict, Optional, Tuple
 
 import pandas as pd
 
+from src.schema_config import (
+    DEFAULT_DATA_MODE,
+    STUDIES_SCHEMA,
+    RESOURCES_SCHEMA,
+    QUALITY_SCHEMA,
+)
+
 logger = logging.getLogger(__name__)
 
-# --- Schema definitions ---
-STUDIES_REQUIRED_COLS = [
-    "study_id", "title", "year", "organization", "url",
-]
-RESOURCES_REQUIRED_COLS = [
-    "study_id", "type", "name", "url",
-]
-QUALITY_REQUIRED_COLS = [
-    "study_id", "title", "missing_field_count", "resource_count",
-]
+# --- Re-export required cols so existing imports keep working ---
+STUDIES_REQUIRED_COLS = STUDIES_SCHEMA["required_cols"]
+RESOURCES_REQUIRED_COLS = RESOURCES_SCHEMA["required_cols"]
+QUALITY_REQUIRED_COLS = QUALITY_SCHEMA["required_cols"]
 
 # Where data lives relative to the repo root
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
@@ -44,26 +46,26 @@ def _validate_schema(df: pd.DataFrame, required: list[str], name: str) -> None:
         raise ValueError(f"[{name}] Missing required columns: {missing}")
 
 
-def _coerce_types(df: pd.DataFrame) -> pd.DataFrame:
-    """Best-effort type coercion for known columns."""
-    if "year" in df.columns:
-        df["year"] = pd.to_numeric(df["year"], errors="coerce").astype("Int64")
-    if "missing_field_count" in df.columns:
-        df["missing_field_count"] = pd.to_numeric(
-            df["missing_field_count"], errors="coerce"
-        ).astype("Int64")
-    if "resource_count" in df.columns:
-        df["resource_count"] = pd.to_numeric(
-            df["resource_count"], errors="coerce"
-        ).astype("Int64")
-    if "study_id" in df.columns:
-        df["study_id"] = pd.to_numeric(df["study_id"], errors="coerce").astype("Int64")
+def _coerce_types(df: pd.DataFrame, dtype_overrides: Dict[str, str] | None = None) -> pd.DataFrame:
+    """Apply type coercion based on *dtype_overrides* mapping.
+
+    Falls back to a sensible default set when no overrides are given.
+    """
+    overrides: Dict[str, str] = dtype_overrides or {
+        "year": "Int64",
+        "missing_field_count": "Int64",
+        "resource_count": "Int64",
+        "study_id": "Int64",
+    }
+    for col, dtype in overrides.items():
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").astype(dtype)
     return df
 
 
 def _resolve_data_dir() -> Path:
     """Return the directory to load CSVs from, based on env var."""
-    mode = os.getenv("GENDERLENS_DATA_MODE", "sample").lower()
+    mode = os.getenv("GENDERLENS_DATA_MODE", DEFAULT_DATA_MODE).lower()
 
     if mode == "full":
         if FULL_DIR.exists() and any(FULL_DIR.glob("*.csv")):
@@ -88,6 +90,7 @@ def load_csv(
     filename: str,
     required_cols: list[str],
     data_dir: Optional[Path] = None,
+    dtype_overrides: Dict[str, str] | None = None,
 ) -> pd.DataFrame:
     """Load a single CSV with schema validation and type coercion."""
     directory = data_dir or _resolve_data_dir()
@@ -98,7 +101,7 @@ def load_csv(
 
     df = pd.read_csv(filepath)
     _validate_schema(df, required_cols, filename)
-    df = _coerce_types(df)
+    df = _coerce_types(df, dtype_overrides)
 
     logger.info("Loaded %s: %d rows × %d cols", filename, len(df), len(df.columns))
     return df
@@ -106,17 +109,32 @@ def load_csv(
 
 def load_studies(data_dir: Optional[Path] = None) -> pd.DataFrame:
     """Load studies.csv."""
-    return load_csv("studies.csv", STUDIES_REQUIRED_COLS, data_dir)
+    return load_csv(
+        STUDIES_SCHEMA["filename"],
+        STUDIES_SCHEMA["required_cols"],
+        data_dir,
+        STUDIES_SCHEMA["dtype_overrides"],
+    )
 
 
 def load_resources(data_dir: Optional[Path] = None) -> pd.DataFrame:
     """Load study_resources.csv."""
-    return load_csv("study_resources.csv", RESOURCES_REQUIRED_COLS, data_dir)
+    return load_csv(
+        RESOURCES_SCHEMA["filename"],
+        RESOURCES_SCHEMA["required_cols"],
+        data_dir,
+        RESOURCES_SCHEMA["dtype_overrides"],
+    )
 
 
 def load_quality_report(data_dir: Optional[Path] = None) -> pd.DataFrame:
     """Load quality_report.csv."""
-    return load_csv("quality_report.csv", QUALITY_REQUIRED_COLS, data_dir)
+    return load_csv(
+        QUALITY_SCHEMA["filename"],
+        QUALITY_SCHEMA["required_cols"],
+        data_dir,
+        QUALITY_SCHEMA["dtype_overrides"],
+    )
 
 
 def load_all(

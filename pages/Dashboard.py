@@ -1,8 +1,9 @@
 """
-📊 Dashboard — Interactive analytics dashboard.
+Dashboard — Interactive analytics dashboard.
 """
 
 import streamlit as st
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
@@ -43,7 +44,7 @@ def get_data():
 df = get_data()
 
 # --- Header ---
-st.markdown("# 📊 Analytics Dashboard")
+st.markdown("# Analytics Dashboard")
 st.markdown("Interactive data exploration across studies, resources, and quality")
 st.markdown("---")
 
@@ -51,7 +52,7 @@ st.markdown("---")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("### 📅 Studies by Year")
+    st.markdown("### Studies by Year")
     if "year" in df.columns and df["year"].notna().any():
         year_counts = df.groupby("year").size().reset_index(name="count")
         fig = px.bar(
@@ -72,7 +73,7 @@ with col1:
         st.info("No year data available.")
 
 with col2:
-    st.markdown("### 📁 Resource Types")
+    st.markdown("### Resource Types")
     # Flatten resource_types lists
     all_types = []
     for types_list in df["resource_types"]:
@@ -80,7 +81,6 @@ with col2:
             all_types.extend(types_list)
 
     if all_types:
-        import pandas as pd
         type_counts = pd.Series(all_types).value_counts().reset_index()
         type_counts.columns = ["type", "count"]
         fig = px.pie(
@@ -102,7 +102,7 @@ st.markdown("---")
 col3, col4 = st.columns(2)
 
 with col3:
-    st.markdown("### 🛡️ Quality Distribution")
+    st.markdown("### Quality Distribution")
     if "quality_level" in df.columns:
         quality_counts = df["quality_level"].value_counts().reset_index()
         quality_counts.columns = ["level", "count"]
@@ -123,7 +123,7 @@ with col3:
         st.plotly_chart(fig, use_container_width=True)
 
 with col4:
-    st.markdown("### 🏛️ Organizations")
+    st.markdown("### Organizations")
     if "organization" in df.columns:
         org_counts = df["organization"].value_counts().reset_index()
         org_counts.columns = ["organization", "count"]
@@ -141,7 +141,7 @@ with col4:
 st.markdown("---")
 
 # --- Row 3: Trust Score Distribution ---
-st.markdown("### 📈 Trust Score Distribution")
+st.markdown("### Trust Score Distribution")
 if "trust_score" in df.columns:
     fig = px.histogram(
         df,
@@ -155,7 +155,7 @@ if "trust_score" in df.columns:
     st.plotly_chart(fig, use_container_width=True)
 
 # --- Summary stats ---
-st.markdown("### 📊 Summary Statistics")
+st.markdown("### Summary Statistics")
 stat_col1, stat_col2, stat_col3, stat_col4 = st.columns(4)
 
 with stat_col1:

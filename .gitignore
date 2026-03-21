@@ -36,3 +36,6 @@ desktop.ini
 .pytest_cache/
 htmlcov/
 .coverage
+
+# Extracted full data (auto-generated from data/full-data.zip)
+data/full/
