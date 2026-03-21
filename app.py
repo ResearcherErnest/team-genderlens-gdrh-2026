@@ -76,7 +76,7 @@ with col4:
 st.markdown("---")
 
 # --- Quick navigation ---
-st.markdown("###Explore the Platform")
+st.markdown("### Explore the Platform")
 
 nav_col1, nav_col2, nav_col3, nav_col4 = st.columns(4)
 
@@ -135,7 +135,7 @@ with nav_col4:
 st.markdown("---")
 
 # --- Data snapshot ---
-st.markdown("###Data Snapshot")
+st.markdown("### Data Snapshot")
 
 with st.expander("View all studies", expanded=False):
     display_cols = [

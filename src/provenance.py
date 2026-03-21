@@ -8,6 +8,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
+import pandas as pd
+
 logger = logging.getLogger(__name__)
 
 # In-memory provenance log (study_id → list of records)
@@ -48,7 +50,7 @@ def format_citation(
     Format a citation string per the required format:
     Organization (Year). Title. Retrieved from URL. Accessed YYYY-MM-DD.
     """
-    yr = str(year) if year else "n.d."
+    yr = str(year) if not pd.isna(year) else "n.d."
     accessed = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     return f"{organization} ({yr}). {title}. Retrieved from {url}. Accessed {accessed}."
 

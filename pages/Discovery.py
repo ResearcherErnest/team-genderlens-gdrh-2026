@@ -1,5 +1,5 @@
 """
-🔍 Discovery — Smart search & discovery page.
+Discovery — Smart search & discovery page.
 """
 
 import streamlit as st
@@ -32,21 +32,21 @@ def get_data():
 df = get_data()
 
 # --- Title ---
-st.markdown("# 🔍 Smart Discovery")
+st.markdown("# Smart Discovery")
 st.markdown("Search across studies using AI-powered semantic matching")
 
 st.markdown("---")
 
 # --- Search bar ---
 query = st.text_input(
-    "🔎 Search studies",
+    "Search studies",
     placeholder="e.g. agricultural labour, health demographics, population census …",
     key="discovery_search",
 )
 
 # --- Sidebar filters ---
 with st.sidebar:
-    st.markdown("### 🎛️ Filters")
+    st.markdown("### Filters")
 
     # Year range
     if "year" in df.columns and df["year"].notna().any():
@@ -94,7 +94,7 @@ results = apply_filters(
 )
 
 # --- Results ---
-st.markdown(f"### 📋 Results ({len(results)} studies)")
+st.markdown(f"### Results ({len(results)} studies)")
 
 if len(results) == 0:
     st.info("No studies match your search and filter criteria. Try broadening your search.")
@@ -137,9 +137,9 @@ else:
             with col_badge:
                 has_md = row.get("has_microdata", False)
                 if has_md:
-                    st.markdown("🔬 **Microdata**")
+                    st.markdown("**Microdata**")
                 if url:
-                    st.markdown(f"[🔗 Source]({url})")
+                    st.markdown(f"[Source]({url})")
 
             with st.expander("View details"):
                 st.markdown(display_abstract, unsafe_allow_html=True)
