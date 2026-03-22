@@ -65,8 +65,9 @@ def infer_scenario(title: str, abstract: str) -> str:
 # ---------------------------------------------------------------------------
 st.markdown("# Advocacy Toolkit")
 st.caption(
-    "Generate policy-ready briefs with AI · export study data · review data provenance"
+    "Generate policy-ready briefs with AI &middot; export study data &middot; review data provenance"
 )
+st.markdown("---")
 
 # Three clearly-separated tabs
 # ---------------------------------------------------------------------------
@@ -208,44 +209,50 @@ with tab_export:
 with tab_prov:
     st.markdown("")
     st.markdown(
-        "Full provenance record for each study — source institution, catalog identifier, "
-        "year conducted with catalog link, and last-accessed timestamp."
+        "Full provenance record for each study — source institution, catalog link, "
+        "coverage, and citation."
     )
     st.markdown("")
 
     accessed_ts = datetime.now(timezone.utc).strftime("%Y-%m-%d at %H:%M UTC")
 
     for _, row in df.iterrows():
-        title = row.get("title", "Untitled")
-        org   = row.get("organization", "Unknown")
-        year  = row.get("year", "N/A")
-        url   = row.get("url", "")
+        title    = row.get("title", "Untitled")
+        org      = row.get("organization", "Unknown")
+        year     = row.get("year", "N/A")
+        url      = row.get("url", "")
+        abstract = str(row.get("abstract", "")).strip()
+        coverage = str(row.get("geographic_coverage", "")).strip()
+        geo_unit = str(row.get("geographic_unit", "")).strip()
 
         with st.expander(f"**{title}**", expanded=False):
-            prov_col, cite_col = st.columns([3, 2], gap="large")
+            # --- Provenance fields ---
+            st.markdown(f"**Title:** {title}")
+            st.markdown(f"**Organization:** {org}")
 
-            with prov_col:
-                st.markdown("**🏛️ Source (Institution)**")
-                st.markdown(f"&nbsp;&nbsp;&nbsp;{org}")
-
-                st.markdown("**📋 Title of Study**")
-                st.markdown(f"&nbsp;&nbsp;&nbsp;{title}")
-
-                st.markdown("**📅 Year Conducted**")
-                if url:
-                    st.markdown(
-                        f"- {year} &nbsp;·&nbsp; [View in Catalog]({url})",
-                        unsafe_allow_html=True,
-                    )
-                else:
-                    st.markdown(f"- {year}")
-
+            if url:
                 st.markdown(
-                    f"&nbsp;&nbsp;&nbsp;&nbsp;↳ *Last accessed: {accessed_ts}*",
+                    f"**Year:** {year} &nbsp;&middot;&nbsp; "
+                    f"[View in Catalog]({url}) &nbsp;&middot;&nbsp; "
+                    f"*Last accessed: {accessed_ts}*",
                     unsafe_allow_html=True,
                 )
+            else:
+                st.markdown(f"**Year:** {year}")
 
-            with cite_col:
-                st.markdown("**📌 Citation**")
-                citation = format_citation(title, org, year, url)
-                st.code(citation, language=None)
+            # --- Coverage ---
+            cov_parts = [p for p in [coverage, geo_unit] if p and p.lower() != "nan"]
+            if cov_parts:
+                st.markdown(f"**Coverage:** {' — '.join(cov_parts)}")
+
+            # --- Brief description ---
+            if abstract and abstract.lower() != "nan":
+                short = abstract[:1000] + ("…" if len(abstract) > 1000 else "")
+                st.markdown(f"**Description:** {short}")
+
+            st.markdown("---")
+
+            # --- Citation ---
+            st.markdown("**Citation**")
+            citation = format_citation(title, org, year, url)
+            st.code(citation, language=None)

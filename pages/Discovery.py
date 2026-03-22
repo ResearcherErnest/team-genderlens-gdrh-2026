@@ -2,6 +2,7 @@
 Discovery — Smart search & discovery page.
 """
 
+import textwrap
 from pathlib import Path
 
 import streamlit as st
@@ -42,25 +43,24 @@ df = get_data()
 # ---------------------------------------------------------------------------
 # Header
 # ---------------------------------------------------------------------------
-st.markdown("# 🔍 Smart Discovery")
+st.markdown("# Smart Discovery")
 st.caption("AI-powered semantic search across all studies and abstracts in the NISR catalog")
 st.markdown("---")
 
 # ---------------------------------------------------------------------------
-# Search bar (prominent, full-width)
+# Search bar
 # ---------------------------------------------------------------------------
 query = st.text_input(
     "Search studies",
     placeholder="e.g. female-headed households, agricultural labour, population census …",
     key="discovery_search",
-    label_visibility="collapsed",
 )
 
 # ---------------------------------------------------------------------------
 # Sidebar filters
 # ---------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown("### 🔧 Filters")
+    st.markdown("### Filters")
 
     # Year range
     if "year" in df.columns and df["year"].notna().any():
@@ -70,9 +70,13 @@ with st.sidebar:
     else:
         year_range = None
 
+    st.markdown("---")
+
     # Organisation
     orgs = sorted(df["organization"].dropna().unique().tolist())
     selected_orgs = st.multiselect("Organisation", orgs)
+
+    st.markdown("---")
 
     # Quality level
     selected_quality = st.multiselect(
@@ -80,6 +84,8 @@ with st.sidebar:
         ["good", "warning", "critical"],
         format_func=lambda x: f"{quality_emoji(x)} {x.title()}",
     )
+
+    st.markdown("---")
 
     # Microdata
     microdata_filter = st.radio(
@@ -106,18 +112,25 @@ results = apply_filters(
 )
 
 # ---------------------------------------------------------------------------
-# Results
+# Results header with count
 # ---------------------------------------------------------------------------
-st.markdown(f"### Results &nbsp;·&nbsp; {len(results)} {'study' if len(results)==1 else 'studies'}", unsafe_allow_html=True)
+st.markdown("---")
 
-if len(results) == 0:
+result_count = len(results)
+count_label = "study" if result_count == 1 else "studies"
+st.markdown(f"### Results ({result_count} {count_label})")
+
+# ---------------------------------------------------------------------------
+# Result cards
+# ---------------------------------------------------------------------------
+if result_count == 0:
     st.info("No studies match your criteria. Try broadening your search or clearing filters.")
 else:
     for _, row in results.iterrows():
         title    = row.get("title", "Untitled")
         org      = row.get("organization", "Unknown")
         year     = row.get("year", "N/A")
-        abstract = str(row.get("abstract", "No abstract available."))
+        abstract = str(row.get("abstract", ""))
         url      = row.get("url", "")
         q_level  = row.get("quality_level", "unknown")
         trust    = row.get("trust_score", 0)
@@ -127,50 +140,85 @@ else:
         display_title    = SearchEngine.highlight_terms(title,    query) if query else title
         display_abstract = SearchEngine.highlight_terms(abstract, query) if query else abstract
 
-        with st.container():
-            st.markdown(
-                f"""
-                <div class="glass-card" style="padding:1.25rem 1.5rem;margin-bottom:0.75rem;">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;">
-                        <div style="flex:1;">
-                            <h4 style="margin:0 0 0.4rem;font-size:1.05rem;color:#E2E8F0;">
-                                {display_title}
-                            </h4>
-                            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;font-size:0.85rem;color:#94A3B8;">
-                                <span>🏛️ {org}</span>
-                                <span>·</span>
-                                <span>📅 {year}</span>
-                                <span>·</span>
-                                {quality_badge_html(q_level)}
-                                {"<span>·</span><span style='color:#3498DB;font-weight:600;'>📦 Microdata</span>" if has_md else ""}
-                                {f'<span>·</span><span style="color:#64A7E5;">Relevance: {score:.2f}</span>' if score > 0 else ""}
-                            </div>
-                        </div>
-                        <div style="flex:0 0 auto;">
-                            {f'<a href="{url}" target="_blank" style="color:#3498DB;font-size:0.8rem;">🔗 Catalog</a>' if url else ""}
-                        </div>
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
+        # Short preview of abstract (first 180 chars)
+        raw_abstract = abstract.strip()
+        if raw_abstract and raw_abstract.lower() != "nan":
+            preview = raw_abstract[:180] + ("…" if len(raw_abstract) > 180 else "")
+        else:
+            preview = ""
+
+        # Build catalog link
+        catalog_html = ""
+        if url:
+            catalog_html = (
+                f'<a href="{url}" target="_blank" '
+                f'style="color:#60a5fa; font-size:0.8rem; '
+                f'text-decoration:none; font-weight:500;">'
+                f'View in Catalog &rarr;</a>'
             )
 
-            with st.expander("View details & abstract"):
-                col_abs, col_meta = st.columns([3, 1], gap="large")
+        # Build microdata pill
+        microdata_html = ""
+        if has_md:
+            microdata_html = (
+                '<span style="background:rgba(59,130,246,0.12); border:1px solid rgba(59,130,246,0.2); '
+                'border-radius:100px; padding:0.15rem 0.6rem; font-size:0.75rem; font-weight:500; '
+                'color:#60a5fa; margin-left:0.25rem;">Microdata</span>'
+            )
 
-                with col_abs:
+        # Relevance indicator
+        relevance_html = ""
+        if score > 0:
+            pct = min(int(score * 100), 100)
+            relevance_html = (
+                f'<div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.6rem;">'
+                f'<span style="font-size:0.75rem; color:#64748b; min-width:62px;">Relevance</span>'
+                f'<div style="flex:1; height:4px; background:rgba(148,163,184,0.12); border-radius:100px; overflow:hidden;">'
+                f'<div style="width:{pct}%; height:100%; background:#3b82f6; border-radius:100px;"></div>'
+                f'</div>'
+                f'<span style="font-size:0.75rem; color:#60a5fa; font-weight:600;">{score:.0%}</span>'
+                f'</div>'
+            )
+
+        with st.container():
+            html_content = f"""<div style="background: rgba(22,32,64,0.75); border: 1px solid rgba(91,147,223,0.15); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 0.6rem; transition: all 0.2s ease;">
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; margin-bottom:0.6rem;">
+<div style="margin:0; font-size:1rem; font-weight:600; color:#f1f5f9; line-height:1.4;">{display_title}</div>
+<div style="flex-shrink:0;">{catalog_html}</div>
+</div>
+<div style="display:flex; flex-wrap:wrap; gap:0.6rem; align-items:center; font-size:0.875rem; color:#cbd5e1; margin-bottom:0.6rem;">
+<span style="font-weight:500;">{org}</span><span style="color:#94a3b8;">&middot;</span><span>{year}</span><span style="color:#94a3b8;">&middot;</span>
+{quality_badge_html(q_level)}
+{microdata_html}
+</div>
+{"<p style='margin:0; font-size:0.875rem; color:#cbd5e1; line-height:1.65;'>" + preview + "</p>" if preview else ""}
+{relevance_html}
+</div>"""
+            if hasattr(st, "html"):
+                st.html(html_content)
+            else:
+                st.markdown(html_content, unsafe_allow_html=True)
+
+            with st.expander("View full details"):
+                detail_col, meta_col = st.columns([3, 1], gap="large")
+
+                with detail_col:
                     st.markdown("**Abstract**")
-                    st.markdown(display_abstract, unsafe_allow_html=True)
+                    if raw_abstract and raw_abstract.lower() != "nan":
+                        st.markdown(display_abstract, unsafe_allow_html=True)
+                    else:
+                        st.markdown("*No abstract available.*")
 
-                with col_meta:
+                with meta_col:
                     st.markdown("**Trust Score**")
                     st.markdown(trust_score_bar(trust))
 
                     rc  = row.get("resource_count_computed", 0)
                     rts = row.get("resource_types", [])
                     st.markdown("**Resources**")
-                    st.markdown(f"{int(rc)} · {', '.join(rts) if rts else 'N/A'}")
+                    type_str = ", ".join(rts) if rts else "N/A"
+                    st.markdown(f"{int(rc)} &middot; {type_str}", unsafe_allow_html=True)
 
                     flags = row.get("quality_flags_list", [])
                     st.markdown("**Quality Flags**")
-                    st.markdown(", ".join(flags) if flags else "None ✅")
+                    st.markdown(", ".join(flags) if flags else "None")

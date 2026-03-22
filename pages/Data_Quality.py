@@ -27,12 +27,14 @@ css_path = Path(__file__).resolve().parents[1] / "assets" / "style.css"
 if css_path.exists():
     st.markdown(f"<style>{css_path.read_text()}</style>", unsafe_allow_html=True)
 
-_QUALITY_COLOR = {"good": "#00843D", "warning": "#D4A017", "critical": "#EF4444"}
+_QUALITY_COLOR = {"good": "#10b981", "warning": "#f59e0b", "critical": "#ef4444"}
 _PLT_BG = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(color="#E2E8F0", family="Inter"),
+    font=dict(color="#f1f5f9", family="Inter"),
     margin=dict(l=24, r=24, t=40, b=24),
+    xaxis=dict(gridcolor="rgba(148,163,184,0.06)"),
+    yaxis=dict(gridcolor="rgba(148,163,184,0.06)"),
 )
 
 
@@ -51,7 +53,7 @@ df = get_data()
 # ---------------------------------------------------------------------------
 # Header
 # ---------------------------------------------------------------------------
-st.markdown("# 🛡️ Data Quality Observatory")
+st.markdown("# Data Quality Observatory")
 st.caption("Monitor and understand data quality across all studies in the catalog")
 st.markdown("---")
 
@@ -69,9 +71,9 @@ for col, level in zip([ov1, ov2, ov3], ["good", "warning", "critical"]):
         st.markdown(
             f"""
             <div class="glass-card" style="padding:1.5rem;text-align:center;">
-                <div style="font-size:2.5rem;">{quality_emoji(level)}</div>
-                <div style="font-size:2rem;font-weight:700;color:{color};">{count}</div>
-                <div style="color:#94A3B8;font-size:0.9rem;">
+                <div style="font-size:2.25rem;">{quality_emoji(level)}</div>
+                <div style="font-size:1.85rem;font-weight:700;color:{color};">{count}</div>
+                <div style="color:#94a3b8;font-size:0.85rem;">
                     {level.title()} &nbsp;({pct:.0f}%)
                 </div>
             </div>
@@ -129,7 +131,7 @@ if all_flags:
     fig = px.bar(
         flag_counts, x="count", y="flag",
         orientation="h",
-        color_discrete_sequence=["#D4A017"],
+        color_discrete_sequence=["#f59e0b"],
         labels={"count": "Occurrences", "flag": ""},
     )
     fig.update_layout(**_PLT_BG, showlegend=False)
@@ -196,8 +198,8 @@ if selected_study:
             r=values + [values[0]],
             theta=categories + [categories[0]],
             fill="toself",
-            fillcolor="rgba(18, 104, 179, 0.2)",
-            line=dict(color="#1268B3", width=2),
+            fillcolor="rgba(59, 130, 246, 0.15)",
+            line=dict(color="#3b82f6", width=2),
         ))
         fig.update_layout(
             polar=dict(
