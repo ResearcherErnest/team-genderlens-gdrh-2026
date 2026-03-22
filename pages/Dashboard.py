@@ -32,13 +32,13 @@ if css_path.exists():
 _PLT_LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(color="#E2E8F0", family="Inter"),
-    xaxis=dict(gridcolor="rgba(148,163,184,0.08)"),
-    yaxis=dict(gridcolor="rgba(148,163,184,0.08)"),
+    font=dict(color="#f1f5f9", family="Inter"),
+    xaxis=dict(gridcolor="rgba(148,163,184,0.06)"),
+    yaxis=dict(gridcolor="rgba(148,163,184,0.06)"),
     margin=dict(l=24, r=24, t=40, b=24),
 )
-_COLORS = ["#1268B3", "#3498DB", "#00843D", "#D4A017", "#EF4444", "#64A7E5"]
-_QUALITY_COLOR = {"good": "#00843D", "warning": "#D4A017", "critical": "#EF4444"}
+_COLORS = ["#3b82f6", "#60a5fa", "#10b981", "#f59e0b", "#ef4444", "#818cf8"]
+_QUALITY_COLOR = {"good": "#10b981", "warning": "#f59e0b", "critical": "#ef4444"}
 
 
 # ---------------------------------------------------------------------------
@@ -56,7 +56,7 @@ df = get_data()
 # ---------------------------------------------------------------------------
 # Header
 # ---------------------------------------------------------------------------
-st.markdown("# 📊 Analytics Dashboard")
+st.markdown("# Analytics Dashboard")
 st.caption("Interactive data exploration across studies, resources, quality scores, and organisations")
 st.markdown("---")
 

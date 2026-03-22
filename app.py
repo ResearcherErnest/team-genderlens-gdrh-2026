@@ -103,11 +103,14 @@ def build_study_groups(df: pd.DataFrame) -> pd.DataFrame:
 st.markdown(
     """
     <div class="gl-hero">
+        <div class="gl-hero-badge">Open-source · Evidence-driven</div>
         <div class="gl-hero-title">
             GenderLens <span class="gl-accent-text">RW</span>
         </div>
+        <p class="gl-hero-tagline">
             Rwanda&#39;s smart platform for discovering, trusting, and using
             gender-disaggregated microdata for evidence-based advocacy.
+        </p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -122,7 +125,7 @@ prob_col, sol_col = st.columns(2, gap="large")
 with prob_col:
     st.markdown(
         """
-        <div class="info-card problem-card" style="margin-bottom: 0; background-color: #1c283b;">
+        <div class="info-card problem-card">
             <h3>The Problem</h3>
             <p>
                 Rwanda&#39;s gender-disaggregated datasets are <strong>fragmented across
@@ -165,7 +168,6 @@ with sol_col:
 # ---------------------------------------------------------------------------
 # KEY METRICS
 # ---------------------------------------------------------------------------
-st.markdown("---")
 st.markdown('<h2 class="section-title">Platform at a Glance</h2>', unsafe_allow_html=True)
 
 m1, m2, m3, m4 = st.columns(4)
@@ -184,7 +186,6 @@ with m4:
 # ---------------------------------------------------------------------------
 # NISR GENDER DATA LAB
 # ---------------------------------------------------------------------------
-st.markdown("---")
 st.markdown('<h2 class="section-title">NISR Gender Data Lab</h2>', unsafe_allow_html=True)
 
 st.markdown(
@@ -210,37 +211,23 @@ st.markdown(
     """
     <a href="https://genderlab.statistics.gov.rw/Visualisation/" target="_blank"
        style="text-decoration:none;">
-        <div style="
-            background: linear-gradient(135deg, #1a2f5e 0%, #2d51a1 100%);
-            border: 1px solid rgba(91,147,223,0.35);
-            border-radius: 16px;
-            padding: 2.5rem 2rem;
+        <div class="glass-card" style="
+            padding: 2rem 1.75rem;
             text-align: center;
             cursor: pointer;
-            transition: box-shadow 0.3s;
         ">
-            <div style="font-size:1.3rem; font-weight:700; color:#EEF4FF; margin-bottom:0.5rem;">
-                NISR Gender Data Lab — Live Dashboard
+            <div style="font-size:1.15rem; font-weight:700; color:#f1f5f9; margin-bottom:0.5rem;">
+                NISR Gender Data Lab &mdash; Live Dashboard
             </div>
-            <div style="color:#9ab4dc; font-size:0.95rem; margin-bottom:1.25rem; line-height:1.6;">
-                Interactive visualisations of Rwanda's gender-disaggregated statistics,<br>
+            <div style="color:#94a3b8; font-size:0.9rem; margin-bottom:1.25rem; line-height:1.6;">
+                Interactive visualisations of Rwanda&#39;s gender-disaggregated statistics,<br>
                 published and maintained by the National Institute of Statistics of Rwanda.
             </div>
-            <span style="
-                display:inline-block;
-                background: rgba(91,147,223,0.2);
-                border: 1px solid rgba(91,147,223,0.45);
-                border-radius: 100px;
-                padding: 0.45rem 1.4rem;
-                color: #81b4ef;
-                font-weight: 600;
-                font-size: 0.9rem;
-                letter-spacing: 0.04em;
-            ">
-                🔗 &nbsp;Open Gender Data Lab &nbsp;→
+            <span class="stat-pill" style="padding:0.4rem 1.2rem; font-size:0.85rem;">
+                Open Gender Data Lab &rarr;
             </span>
-            <div style="margin-top:1rem; color:#5b7aa8; font-size:0.78rem;">
-                genderlab.statistics.gov.rw &nbsp;·&nbsp; opens in a new tab
+            <div style="margin-top:0.75rem; color:#64748b; font-size:0.75rem;">
+                genderlab.statistics.gov.rw &middot; opens in a new tab
             </div>
         </div>
     </a>
