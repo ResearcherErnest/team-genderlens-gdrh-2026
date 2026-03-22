@@ -126,6 +126,16 @@ for flags_list in df.get("quality_flags_list", []):
         all_flags.extend(flags_list)
 
 if all_flags:
+    _FLAG_LABELS = {
+        "missing_study_type": "Missing Study Type",
+        "missing_scope_notes": "Missing Scope Notes",
+        "no_resources_found": "No Resources Found",
+        "missing_abstract": "Missing Abstract",
+        "missing_units_of_analysis": "Missing Units of Analysis",
+        "missing_get_microdata_url": "Missing Microdata URL",
+        "missing_data_access_type": "Missing Data Access Type",
+    }
+    all_flags = [_FLAG_LABELS.get(f, f.replace("_", " ").title()) for f in all_flags]
     flag_counts = pd.Series(all_flags).value_counts().reset_index()
     flag_counts.columns = ["flag", "count"]
     fig = px.bar(

@@ -107,7 +107,7 @@ st.markdown(
         <div class="gl-hero-title">
             GenderLens <span class="gl-accent-text">RW</span>
         </div>
-        <p class="gl-hero-tagline">
+        <p>
             Rwanda&#39;s smart platform for discovering, trusting, and using
             gender-disaggregated microdata for evidence-based advocacy.
         </p>
