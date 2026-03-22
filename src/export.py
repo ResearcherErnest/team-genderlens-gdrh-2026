@@ -4,15 +4,64 @@ Export Engine — Generate downloadable CSV summaries and text reports.
 
 from __future__ import annotations
 
-import io
 import logging
+import re
 from datetime import datetime, timezone
+from typing import Optional
 
 import pandas as pd
 
 from src.provenance import format_citation
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Gender distribution extraction helpers
+# ---------------------------------------------------------------------------
+_GENDER_PATTERNS: list[tuple[str, str]] = [
+    # Female-headed households
+    (r"(\d+(?:\.\d+)?)\s*%[^.]*?female[^.]*?head",     "Female-headed households: {0}%"),
+    (r"female[^.]*?head[^.]*?(\d+(?:\.\d+)?)\s*%",     "Female-headed households: {0}%"),
+    # Male-headed households
+    (r"(\d+(?:\.\d+)?)\s*%[^.]*?male[^.]*?head",       "Male-headed households: {0}%"),
+    (r"male[^.]*?head[^.]*?(\d+(?:\.\d+)?)\s*%",       "Male-headed households: {0}%"),
+    # Mostly male / female headed phrasing
+    (r"mostly\s+male.headed",                            "Predominantly male-headed households"),
+    (r"mostly\s+female.headed",                          "Predominantly female-headed households"),
+    # Women participation / proportion
+    (r"(\d+(?:\.\d+)?)\s*%[^.]*?women",                "Women's share: {0}%"),
+    (r"women[^.]*?(\d+(?:\.\d+)?)\s*%",                "Women-related statistic: {0}%"),
+    # Gender gap
+    (r"gender\s+gap[^.]*?(\d+(?:\.\d+)?)\s*%",         "Gender gap: {0}%"),
+    # Girls education
+    (r"(\d+(?:\.\d+)?)\s*%[^.]*?girls",                "Girls share: {0}%"),
+]
+
+
+def _extract_gender_stats(abstract: str) -> list[str]:
+    """Extract gender-related statistics from a study abstract."""
+    found: list[str] = []
+    seen_labels: set[str] = set()
+
+    for pattern, template in _GENDER_PATTERNS:
+        m = re.search(pattern, abstract, re.IGNORECASE)
+        if m:
+            if m.lastindex:
+                label = template.format(m.group(1))
+            else:
+                label = template.format("")  # boolean patterns (mostly male/female)
+
+            # Deduplicate by label prefix
+            prefix = label.split(":")[0]
+            if prefix not in seen_labels:
+                seen_labels.add(prefix)
+                found.append(label)
+
+        if len(found) >= 5:
+            break
+
+    return found
 
 
 def export_studies_csv(df: pd.DataFrame) -> str:
@@ -32,52 +81,73 @@ def generate_policy_brief(
     study_row: pd.Series,
     scenario: str = "general",
 ) -> str:
-    """
-    Generate a formatted policy brief for a single study.
-    Returns markdown text.
-    """
-    title = study_row.get("title", "Untitled Study")
-    org = study_row.get("organization", "Unknown")
-    year = study_row.get("year", "N/A")
-    abstract = study_row.get("abstract", "No abstract available.")
-    url = study_row.get("url", "")
-    quality = study_row.get("quality_level", "unknown")
-    trust = study_row.get("trust_score", 0)
-    completeness = study_row.get("completeness_score", 0)
-    flags = study_row.get("quality_flags_list", [])
+    """Generate a formatted policy brief for a single study (returns Markdown)."""
+    title          = study_row.get("title", "Untitled Study")
+    org            = study_row.get("organization", "Unknown")
+    year           = study_row.get("year", "N/A")
+    abstract       = str(study_row.get("abstract", "No abstract available."))
+    url            = study_row.get("url", "")
+    quality        = study_row.get("quality_level", "unknown")
+    trust          = study_row.get("trust_score", 0)
+    completeness   = study_row.get("completeness_score", 0)
+    flags          = study_row.get("quality_flags_list", [])
     resource_count = study_row.get("resource_count_computed", 0)
 
-    # Citation
     citation = format_citation(title, org, year, url)
 
-    # Quality caveats
-    caveats = ""
+    # Quality caveat block
     if quality == "critical":
-        caveats = (
+        caveat = (
             "> ⚠️ **Data Quality Caveat**: This dataset has critical quality issues. "
-            "Use with caution and verify findings independently.\n\n"
+            "Verify findings independently before citing.\n\n"
         )
     elif quality == "warning":
-        caveats = (
+        caveat = (
             "> ℹ️ **Data Quality Note**: Some metadata fields are missing. "
-            "Consider this when citing.\n\n"
+            "Note this limitation when citing.\n\n"
+        )
+    else:
+        caveat = ""
+
+    flag_text = (
+        "**Quality flags**: " + ", ".join(flags) + "\n\n"
+        if flags else ""
+    )
+
+    # Gender distribution section
+    gender_stats = _extract_gender_stats(abstract)
+    if gender_stats:
+        gender_lines = "\n".join(f"- {s}" for s in gender_stats)
+        gender_section = (
+            "## Gender Distribution Analysis\n\n"
+            "Key gender metrics identified in this dataset:\n\n"
+            f"{gender_lines}\n\n"
+            "> These figures are extracted from the study abstract. "
+            "Consult the full dataset for complete gender-disaggregated tables.\n\n"
+        )
+    else:
+        gender_section = (
+            "## Gender Distribution Analysis\n\n"
+            "> No explicit gender distribution data was found in the study abstract. "
+            "Consult the full dataset for gender-disaggregated statistics "
+            "(e.g., female-headed household rates, women's labour participation).\n\n"
         )
 
-    flag_text = ""
-    if flags:
-        flag_text = "**Quality flags**: " + ", ".join(flags) + "\n\n"
+    return f"""# Policy Brief: {title}
 
-    brief = f"""# Policy Brief: {title}
-
-**Prepared**: {datetime.now(timezone.utc).strftime("%d %B %Y")}
-**Source**: {org} ({year})
-**Scenario**: {scenario.title()}
+**Prepared**: {datetime.now(timezone.utc).strftime("%d %B %Y")}  
+**Source**: {org} ({year})  
+**Advocacy Scenario**: {scenario.title()}
 
 ---
 
-## Key Data Source
+## Background & Key Findings
 
 {abstract}
+
+---
+
+{gender_section}---
 
 ## Data Quality Assessment
 
@@ -86,17 +156,19 @@ def generate_policy_brief(
 | Trust Score | {trust:.0%} |
 | Completeness | {completeness:.0%} |
 | Quality Level | {quality.title()} |
-| Resources Available | {resource_count} |
+| Resources Available | {int(resource_count)} |
 
-{caveats}{flag_text}## Citation
+{caveat}{flag_text}---
+
+## Citation
 
 {citation}
 
 ---
 
-*Generated by GenderLens RW — Smart Gender Data Discovery Platform*
+*Generated by GenderLens RW — Smart Gender Data Discovery Platform*  
+*Data source: [NISR Microdata Catalog]({url if url else "https://microdata.statistics.gov.rw"})*
 """
-    return brief
 
 
 def generate_comparison_report(df: pd.DataFrame) -> str:

@@ -1,46 +1,61 @@
 /* ============================================================
-   GenderLens RW — Premium Dark Glassmorphism Theme
+   GenderLens RW — NISR Blue Theme
+   Reference colour: sidebar bg #2d51a1
+   All surfaces, accents, and text derived from that base.
    ============================================================ */
 
 /* ---------- Google Fonts ---------- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* ---------- Root variables ---------- */
+/* ---------- Root variables — derived from sidebar #2d51a1 ---------- */
 :root {
-    --gl-bg-primary: #d6dcea;
-    --gl-bg-secondary: #1E293B;
-    --gl-bg-card: rgba(30, 41, 59, 0.7);
-    --gl-border: rgba(148, 163, 184, 0.15);
-    --gl-text-primary: #E2E8F0;
-    --gl-text-secondary: #94A3B8;
-    --gl-accent: #7C3AED;
-    --gl-accent-light: #A78BFA;
-    --gl-success: #10B981;
-    --gl-warning: #F59E0B;
-    --gl-danger: #EF4444;
-    --gl-gradient-start: #7C3AED;
-    --gl-gradient-end: #2563EB;
-    --gl-glass-bg: rgba(30, 41, 59, 0.6);
-    --gl-glass-border: rgba(148, 163, 184, 0.12);
-    --gl-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    --gl-radius: 16px;
-    --gl-radius-sm: 10px;
-    --gl-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Core surfaces */
+    --gl-bg-primary:     #1a2f5e;           /* main page bg  (dark navy)       */
+    --gl-bg-secondary:   #2d51a1;           /* sidebar bg    (reference colour) */
+    --gl-bg-deep:        #0f1d3b;           /* deepest bg                       */
+
+    /* Glass cards — sidebar colour at reduced opacity on dark base */
+    --gl-glass-bg:       rgba(26, 47, 94, 0.65);
+    --gl-glass-border:   rgba(91, 147, 223, 0.22);
+    --gl-glass-shadow:   0 8px 32px rgba(10, 20, 50, 0.45);
+
+    /* Accent — lighter step above sidebar */
+    --gl-accent:         #5b93df;
+    --gl-accent-light:   #81b4ef;
+
+    /* Gradients — dark navy → sidebar blue */
+    --gl-gradient-start: #1a2f5e;
+    --gl-gradient-end:   #3d68c5;
+
+    /* Status colours */
+    --gl-success:        #00843D;
+    --gl-warning:        #D4A017;
+    --gl-danger:         #EF4444;
+
+    /* Typography */
+    --gl-text-primary:   #EEF4FF;
+    --gl-text-secondary: #9ab4dc;
+
+    /* Misc */
+    --gl-radius:         16px;
+    --gl-radius-sm:      10px;
+    --gl-transition:     all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ---------- Global resets ---------- */
+/* ---------- Global ---------- */
 html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     color: var(--gl-text-primary);
+    background-color: var(--gl-bg-primary);
 }
 
-/* ---------- Glassmorphism card mixin ---------- */
+/* ---------- Glassmorphism card ---------- */
 .glass-card,
 [data-testid="stMetric"],
 [data-testid="stExpander"] {
     background: var(--gl-glass-bg) !important;
-    backdrop-filter: blur(16px) saturate(1.8);
-    -webkit-backdrop-filter: blur(16px) saturate(1.8);
+    backdrop-filter: blur(16px) saturate(1.6);
+    -webkit-backdrop-filter: blur(16px) saturate(1.6);
     border: 1px solid var(--gl-glass-border) !important;
     border-radius: var(--gl-radius) !important;
     box-shadow: var(--gl-glass-shadow);
@@ -49,8 +64,8 @@ html, body, [data-testid="stAppViewContainer"] {
 
 .glass-card:hover,
 [data-testid="stMetric"]:hover {
-    border-color: var(--gl-accent-light) !important;
-    box-shadow: 0 8px 40px rgba(124, 58, 237, 0.15);
+    border-color: var(--gl-accent) !important;
+    box-shadow: 0 8px 40px rgba(91, 147, 223, 0.2);
     transform: translateY(-2px);
 }
 
@@ -70,7 +85,7 @@ html, body, [data-testid="stAppViewContainer"] {
 [data-testid="stMetric"] [data-testid="stMetricValue"] {
     font-weight: 700 !important;
     font-size: 2rem !important;
-    background: linear-gradient(135deg, var(--gl-gradient-start), var(--gl-gradient-end));
+    background: linear-gradient(135deg, var(--gl-accent-light), var(--gl-accent));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -79,7 +94,7 @@ html, body, [data-testid="stAppViewContainer"] {
 /* ---------- Buttons ---------- */
 .stButton > button {
     background: linear-gradient(135deg, var(--gl-gradient-start), var(--gl-gradient-end)) !important;
-    color: white !important;
+    color: #EEF4FF !important;
     border: none !important;
     border-radius: var(--gl-radius-sm) !important;
     padding: 0.6rem 1.5rem !important;
@@ -87,11 +102,11 @@ html, body, [data-testid="stAppViewContainer"] {
     font-size: 0.9rem !important;
     letter-spacing: 0.02em;
     transition: var(--gl-transition);
-    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+    box-shadow: 0 4px 15px rgba(45, 81, 161, 0.4);
 }
 
 .stButton > button:hover {
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5) !important;
+    box-shadow: 0 6px 22px rgba(91, 147, 223, 0.45) !important;
     transform: translateY(-2px);
 }
 
@@ -108,19 +123,25 @@ html, body, [data-testid="stAppViewContainer"] {
 
 .stTextInput > div > div > input:focus {
     border-color: var(--gl-accent) !important;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2) !important;
+    box-shadow: 0 0 0 3px rgba(91, 147, 223, 0.25) !important;
 }
 
-/* ---------- Sidebar ---------- */
+/* ---------- Sidebar — keep reference colour ---------- */
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0F172A 0%, #1a1f3a 100%) !important;
-    border-right: 1px solid var(--gl-glass-border) !important;
+    background: #2d51a1 !important;
+    border-right: 1px solid rgba(91, 147, 223, 0.2) !important;
 }
 
 [data-testid="stSidebar"] .stMarkdown h1,
 [data-testid="stSidebar"] .stMarkdown h2,
 [data-testid="stSidebar"] .stMarkdown h3 {
     color: var(--gl-accent-light) !important;
+}
+
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span {
+    color: #EEF4FF !important;
 }
 
 /* ---------- Selectbox / Multiselect ---------- */
@@ -135,7 +156,7 @@ html, body, [data-testid="stAppViewContainer"] {
 /* ---------- Tabs ---------- */
 .stTabs [data-baseweb="tab-list"] {
     gap: 4px;
-    background: var(--gl-bg-secondary);
+    background: var(--gl-bg-deep);
     border-radius: var(--gl-radius-sm);
     padding: 4px;
 }
@@ -149,7 +170,7 @@ html, body, [data-testid="stAppViewContainer"] {
 
 .stTabs [aria-selected="true"] {
     background: linear-gradient(135deg, var(--gl-gradient-start), var(--gl-gradient-end)) !important;
-    color: white !important;
+    color: #EEF4FF !important;
 }
 
 /* ---------- Expander ---------- */
@@ -170,7 +191,7 @@ html, body, [data-testid="stAppViewContainer"] {
 
 /* ---------- Progress bar ---------- */
 .stProgress > div > div > div {
-    background: linear-gradient(90deg, var(--gl-gradient-start), var(--gl-gradient-end)) !important;
+    background: linear-gradient(90deg, var(--gl-gradient-start), var(--gl-accent)) !important;
     border-radius: 100px !important;
 }
 
@@ -180,7 +201,7 @@ hr {
     margin: 2rem 0 !important;
 }
 
-/* ---------- Badge helpers (used in st.markdown) ---------- */
+/* ---------- Quality badges ---------- */
 .quality-badge {
     display: inline-block;
     padding: 0.25rem 0.75rem;
@@ -190,75 +211,137 @@ hr {
     letter-spacing: 0.03em;
 }
 
-.badge-good {
-    background: rgba(16, 185, 129, 0.15);
-    color: #34D399;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.badge-warning {
-    background: rgba(245, 158, 11, 0.15);
-    color: #FBBF24;
-    border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.badge-critical {
-    background: rgba(239, 68, 68, 0.15);
-    color: #F87171;
-    border: 1px solid rgba(239, 68, 68, 0.3);
-}
+.badge-good    { background: rgba(0,132,61,0.18);   color: #34D399; border: 1px solid rgba(0,132,61,0.35); }
+.badge-warning { background: rgba(212,160,23,0.18); color: #FCD34D; border: 1px solid rgba(212,160,23,0.35); }
+.badge-critical{ background: rgba(239,68,68,0.18);  color: #F87171; border: 1px solid rgba(239,68,68,0.35); }
 
 /* ---------- Hero section ---------- */
-.hero-title {
-    font-size: 3rem;
+.gl-hero {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+}
+
+.gl-hero-badge {
+    display: inline-block;
+    background: rgba(91, 147, 223, 0.15);
+    border: 1px solid rgba(91, 147, 223, 0.3);
+    border-radius: 100px;
+    padding: 0.3rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gl-accent-light);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+
+.gl-hero-title {
+    font-size: 3.5rem;
     font-weight: 800;
     line-height: 1.1;
-    background: linear-gradient(135deg, #A78BFA, #7C3AED, #2563EB);
+    color: var(--gl-text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.gl-accent-text {
+    background: linear-gradient(135deg, var(--gl-accent-light), var(--gl-accent));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: 0.5rem;
 }
 
-.hero-subtitle {
-    font-size: 1.2rem;
+.gl-hero-tagline {
+    font-size: 1.15rem;
     color: var(--gl-text-secondary);
-    font-weight: 400;
-    line-height: 1.6;
-    max-width: 600px;
+    line-height: 1.8;
+    max-width: 680px;
+    margin: 0 auto 1.5rem;
 }
+
+/* ---------- Section title ---------- */
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gl-text-primary);
+    margin-bottom: 0.75rem;
+    padding-left: 0.75rem;
+    border-left: 4px solid var(--gl-accent);
+}
+
+/* ---------- Info cards (problem / solution) ---------- */
+.info-card {
+    background: var(--gl-glass-bg);
+    backdrop-filter: blur(12px);
+    border-radius: var(--gl-radius);
+    padding: 1.75rem;
+    border: 1px solid var(--gl-glass-border);
+    height: 100%;
+}
+
+.info-card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+.info-card h3   { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--gl-text-primary); }
+.info-card p, .info-card li { color: var(--gl-text-secondary); line-height: 1.7; }
+.info-card ul   { padding-left: 1.2rem; }
+.info-card li   { margin-bottom: 0.35rem; }
+.problem-card   { border-top: 3px solid var(--gl-danger); }
+.solution-card  { border-top: 3px solid var(--gl-success); }
+
+/* ---------- NISR acknowledgement card ---------- */
+.nisr-ack-card {
+    background: rgba(45, 81, 161, 0.2);
+    border: 1px solid rgba(91, 147, 223, 0.3);
+    border-radius: var(--gl-radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.nisr-ack-card p   { color: var(--gl-text-secondary); line-height: 1.7; margin: 0 0 0.5rem; }
+.nisr-ack-card a   { color: var(--gl-accent-light); text-decoration: none; }
+.nisr-ack-card a:hover { text-decoration: underline; }
+
+/* ---------- Feature cards ---------- */
+.feature-card {
+    background: var(--gl-glass-bg);
+    border: 1px solid var(--gl-glass-border);
+    border-radius: var(--gl-radius);
+    padding: 1.5rem;
+    text-align: center;
+    transition: var(--gl-transition);
+    height: 100%;
+}
+
+.feature-card:hover {
+    border-color: var(--gl-accent);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(91, 147, 223, 0.2);
+}
+
+.feature-icon  { font-size: 2.5rem; margin-bottom: 0.75rem; }
+.feature-card h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--gl-text-primary); }
+.feature-card p  { color: var(--gl-text-secondary); font-size: 0.875rem; line-height: 1.6; margin: 0; }
+
+/* ---------- Footer ---------- */
+.gl-footer {
+    text-align: center;
+    padding: 1.5rem 0;
+    color: var(--gl-text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.8;
+}
+
+.gl-footer a       { color: var(--gl-accent-light); text-decoration: none; }
+.gl-footer a:hover { text-decoration: underline; }
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--gl-bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--gl-bg-secondary); border-radius: 100px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gl-accent); }
 
 /* ---------- Animations ---------- */
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-.animate-in {
-    animation: fadeInUp 0.6s ease-out forwards;
-}
-
-/* ---------- Scrollbar ---------- */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--gl-bg-primary);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--gl-bg-secondary);
-    border-radius: 100px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--gl-accent);
-}
+.animate-in { animation: fadeInUp 0.6s ease-out forwards; }

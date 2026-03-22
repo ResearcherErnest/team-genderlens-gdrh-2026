@@ -3,6 +3,9 @@ GenderLens RW — Smart Gender Data Discovery Platform
 Main entry point and landing page.
 """
 
+import re
+
+import pandas as pd
 import streamlit as st
 from pathlib import Path
 
@@ -10,7 +13,9 @@ from src.pipeline.ingestion import load_all
 from src.pipeline.transform import transform
 from src.pipeline.quality import compute_quality_scores
 
-# --- Page config ---
+# ---------------------------------------------------------------------------
+# Page config
+# ---------------------------------------------------------------------------
 st.set_page_config(
     page_title="GenderLens RW",
     page_icon="🔍",
@@ -18,143 +23,336 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- Inject custom CSS ---
 css_path = Path(__file__).parent / "assets" / "style.css"
 if css_path.exists():
     st.markdown(f"<style>{css_path.read_text()}</style>", unsafe_allow_html=True)
 
 
-# --- Data loading (cached) ---
+# ---------------------------------------------------------------------------
+# Data loading
+# ---------------------------------------------------------------------------
 @st.cache_data(show_spinner="Loading and enriching data …")
-def get_enriched_data():
+def get_enriched_data() -> pd.DataFrame:
     studies, resources, quality = load_all()
     df = transform(studies, resources, quality)
-    df = compute_quality_scores(df)
-    return df
+    return compute_quality_scores(df)
 
 
 df = get_enriched_data()
 
 
-# --- Hero section ---
+# ---------------------------------------------------------------------------
+# Study-group helpers  (Data Snapshot section)
+# ---------------------------------------------------------------------------
+_SERIES_RENAMES: list[tuple[str, str]] = [
+    (r"^agriculture\s+household",                "Agricultural Household Survey"),
+    (r"^demographic\s+health\s+survey",           "Demographic and Health Survey"),
+    (r"^comprehensive food security.*nutrition",   "Food Security & Vulnerability Survey"),
+    (r"^comprehensive food security",              "Food Security & Vulnerability Survey (CFSVA)"),
+]
+
+
+def _series_name(title: str) -> str:
+    """Strip the year suffix and normalise the survey-series name."""
+    s = re.sub(r"\s*,?\s*\d{4}(?:[/–-]\d{2,4})?\s*$", "", str(title)).strip()
+    low = s.lower()
+    for pattern, replacement in _SERIES_RENAMES:
+        if re.search(pattern, low):
+            return replacement
+    return s
+
+
+def _frequency(years: list[int]) -> str:
+    if len(years) < 2:
+        return "Single edition"
+    gaps = [years[i + 1] - years[i] for i in range(len(years) - 1)]
+    avg = sum(gaps) / len(gaps)
+    if avg <= 1.5:
+        return "Annual"
+    if avg <= 2.5:
+        return "Biennial"
+    if avg <= 4.5:
+        return "Periodic (~3–4 yrs)"
+    return "Ad-hoc"
+
+
+def build_study_groups(df: pd.DataFrame) -> pd.DataFrame:
+    """Group studies by survey series for the Data Snapshot table."""
+    tmp = df.copy()
+    tmp["_series"] = tmp["title"].apply(_series_name)
+    org_col = "org_short" if "org_short" in tmp.columns else "organization"
+    rows = []
+    for series, grp in tmp.groupby("_series", sort=True):
+        years = sorted(grp["year"].dropna().astype(int).unique().tolist())
+        orgs = list(dict.fromkeys(grp[org_col].dropna().tolist()))
+        res_col = "resource_count_computed"
+        total_res = int(grp[res_col].sum()) if res_col in grp.columns else 0
+        rows.append({
+            "Survey Series":   series,
+            "Frequency":       _frequency(years),
+            "Years Conducted": " · ".join(map(str, years)),
+            "Organization(s)": " / ".join(orgs[:2]) + ("…" if len(orgs) > 2 else ""),
+            "Total Resources": total_res,
+        })
+    return pd.DataFrame(rows)
+
+
+# ---------------------------------------------------------------------------
+# HERO
+# ---------------------------------------------------------------------------
 st.markdown(
     """
-    <div style="text-align: center; padding: 2rem 0 1rem 0;">
-        <div class="hero-title">GenderLens RW</div>
-        <div class="hero-subtitle">
-            Smart Gender Data Discovery Platform for Rwanda<br>
-            <em>Find, trust, and use gender-related data for evidence-based advocacy</em>
+    <div class="gl-hero">
+        <div class="gl-hero-title">
+            GenderLens <span class="gl-accent-text">RW</span>
         </div>
+            Rwanda&#39;s smart platform for discovering, trusting, and using
+            gender-disaggregated microdata for evidence-based advocacy.
     </div>
     """,
     unsafe_allow_html=True,
 )
 
+# ---------------------------------------------------------------------------
+# PROBLEM & SOLUTION
+# ---------------------------------------------------------------------------
 st.markdown("---")
+prob_col, sol_col = st.columns(2, gap="large")
 
-# --- KPI metric cards ---
-col1, col2, col3, col4 = st.columns(4)
+with prob_col:
+    st.markdown(
+        """
+        <div class="info-card problem-card" style="margin-bottom: 0; background-color: #1c283b;">
+            <h3>The Problem</h3>
+            <p>
+                Rwanda&#39;s gender-disaggregated datasets are <strong>fragmented across
+                dozens of surveys</strong>, with <strong>inconsistent metadata quality</strong>
+                and no unified discovery interface — making it hard for advocates,
+                policymakers, and researchers to find and trust the data they need.
+            </p>
+            <ul>
+                <li>No single place to search across all gender surveys</li>
+                <li>Metadata completeness and freshness vary widely</li>
+                <li>Difficult to assess data reliability at a glance</li>
+                <li>Policy briefs require slow, manual citation work</li>
+            </ul>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-with col1:
+with sol_col:
+    st.markdown(
+        """
+        <div class="info-card solution-card">
+            <h3>The Solution</h3>
+            <p>
+                <strong>GenderLens RW</strong> provides a unified, AI-powered discovery
+                layer on top of NISR&#39;s microdata catalog — enabling fast, trusted,
+                evidence-based gender-data decisions.
+            </p>
+            <ul>
+                <li><strong>Smart search</strong> across all studies and abstracts</li>
+                <li><strong>Quality scoring</strong> with traffic-light indicators</li>
+                <li><strong>Analytics dashboard</strong> with year trends and breakdowns</li>
+                <li><strong>Advocacy toolkit</strong> with AI-generated policy briefs</li>
+            </ul>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+# ---------------------------------------------------------------------------
+# KEY METRICS
+# ---------------------------------------------------------------------------
+st.markdown("---")
+st.markdown('<h2 class="section-title">Platform at a Glance</h2>', unsafe_allow_html=True)
+
+m1, m2, m3, m4 = st.columns(4)
+with m1:
     st.metric("Total Studies", len(df))
-
-with col2:
-    total_resources = df["resource_count_computed"].sum() if "resource_count_computed" in df.columns else 0
-    st.metric("Total Resources", int(total_resources))
-
-with col3:
-    good_pct = (
-        (df["quality_level"] == "good").sum() / len(df) * 100
-        if len(df) > 0 else 0
-    )
+with m2:
+    total_res = int(df["resource_count_computed"].sum()) if "resource_count_computed" in df.columns else 0
+    st.metric("Total Resources", total_res)
+with m3:
+    good_pct = (df["quality_level"] == "good").sum() / max(len(df), 1) * 100
     st.metric("Good Quality", f"{good_pct:.0f}%")
+with m4:
+    micro = int(df["has_microdata"].sum()) if "has_microdata" in df.columns else 0
+    st.metric("With Microdata", micro)
 
-with col4:
-    microdata_count = df["has_microdata"].sum() if "has_microdata" in df.columns else 0
-    st.metric("With Microdata", int(microdata_count))
-
+# ---------------------------------------------------------------------------
+# NISR GENDER DATA LAB
+# ---------------------------------------------------------------------------
 st.markdown("---")
+st.markdown('<h2 class="section-title">NISR Gender Data Lab</h2>', unsafe_allow_html=True)
 
-# --- Quick navigation ---
-st.markdown("### Explore the Platform")
+st.markdown(
+    """
+    <div class="nisr-ack-card">
+        <p>
+            GenderLens RW is built on data curated and published by the
+            <strong>National Institute of Statistics of Rwanda (NISR)</strong>
+            through its <strong>Gender Data Lab</strong> — Rwanda&#39;s authoritative
+            source for gender-disaggregated statistics and interactive visualisation.
+        </p>
+        <p>
+            The live Gender Data Lab dashboard is embedded below.
+            Visit <a href="https://genderlab.statistics.gov.rw" target="_blank">
+            genderlab.statistics.gov.rw</a> for the full platform.
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-nav_col1, nav_col2, nav_col3, nav_col4 = st.columns(4)
-
-with nav_col1:
-    st.markdown(
-        """
-        <div class="glass-card" style="padding: 1.5rem; text-align: center;">
-            <h3>Discovery</h3>
-            <p style="color: #94A3B8; font-size: 0.9rem;">
-                AI-powered semantic search across studies and abstracts
-            </p>
+st.markdown(
+    """
+    <a href="https://genderlab.statistics.gov.rw/Visualisation/" target="_blank"
+       style="text-decoration:none;">
+        <div style="
+            background: linear-gradient(135deg, #1a2f5e 0%, #2d51a1 100%);
+            border: 1px solid rgba(91,147,223,0.35);
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: box-shadow 0.3s;
+        ">
+            <div style="font-size:1.3rem; font-weight:700; color:#EEF4FF; margin-bottom:0.5rem;">
+                NISR Gender Data Lab — Live Dashboard
+            </div>
+            <div style="color:#9ab4dc; font-size:0.95rem; margin-bottom:1.25rem; line-height:1.6;">
+                Interactive visualisations of Rwanda's gender-disaggregated statistics,<br>
+                published and maintained by the National Institute of Statistics of Rwanda.
+            </div>
+            <span style="
+                display:inline-block;
+                background: rgba(91,147,223,0.2);
+                border: 1px solid rgba(91,147,223,0.45);
+                border-radius: 100px;
+                padding: 0.45rem 1.4rem;
+                color: #81b4ef;
+                font-weight: 600;
+                font-size: 0.9rem;
+                letter-spacing: 0.04em;
+            ">
+                🔗 &nbsp;Open Gender Data Lab &nbsp;→
+            </span>
+            <div style="margin-top:1rem; color:#5b7aa8; font-size:0.78rem;">
+                genderlab.statistics.gov.rw &nbsp;·&nbsp; opens in a new tab
+            </div>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    </a>
+    """,
+    unsafe_allow_html=True,
+)
 
-with nav_col2:
-    st.markdown(
-        """
-        <div class="glass-card" style="padding: 1.5rem; text-align: center;">
-            <h3>Dashboard</h3>
-            <p style="color: #94A3B8; font-size: 0.9rem;">
-                Interactive analytics with year trends and breakdowns
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-with nav_col3:
-    st.markdown(
-        """
-        <div class="glass-card" style="padding: 1.5rem; text-align: center;">
-            <h3>Data Quality</h3>
-            <p style="color: #94A3B8; font-size: 0.9rem;">
-                Quality observatory with traffic-light scoring
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-with nav_col4:
-    st.markdown(
-        """
-        <div class="glass-card" style="padding: 1.5rem; text-align: center;">
-            <h3>Advocacy</h3>
-            <p style="color: #94A3B8; font-size: 0.9rem;">
-                Auto-generate policy briefs with citations
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+# ---------------------------------------------------------------------------
+# KEY FEATURES
+# ---------------------------------------------------------------------------
 st.markdown("---")
+st.markdown('<h2 class="section-title">Key Features</h2>', unsafe_allow_html=True)
 
-# --- Data snapshot ---
-st.markdown("### Data Snapshot")
+feat_cols = st.columns(4, gap="medium")
+_FEATURES = [
+    {
+        "title": "Smart Discovery",
+        "desc": (
+            "AI-powered TF-IDF semantic search across study titles and abstracts. "
+            "Filter by year, organisation, quality level, and microdata availability."
+        ),
+        "page": "pages/Discovery.py",
+        "label": "Open Discovery →",
+    },
+    {
+        "title": "Analytics Dashboard",
+        "desc": (
+            "Interactive charts: study trends by year, resource-type distribution, "
+            "quality breakdown, and organisation profiles."
+        ),
+        "page": "pages/Dashboard.py",
+        "label": "Open Dashboard →",
+    },
+    {
+        "title": "Data Quality",
+        "desc": (
+            "Traffic-light quality observatory: completeness, freshness, and resource "
+            "scoring for every dataset in the catalog."
+        ),
+        "page": "pages/Data_Quality.py",
+        "label": "Open Data Quality →",
+    },
+    {
+        "title": "Advocacy Toolkit",
+        "desc": (
+            "Generate AI-assisted policy briefs with gender distributions, export data, "
+            "and view full data provenance — all in one workflow."
+        ),
+        "page": "pages/Advocacy_Toolkit.py",
+        "label": "Open Toolkit →",
+    },
+]
 
-with st.expander("View all studies", expanded=False):
+for col, feat in zip(feat_cols, _FEATURES):
+    with col:
+        st.markdown(
+            f"""
+            <div class="feature-card">
+                <h4>{feat['title']}</h4>
+                <p>{feat['desc']}</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.page_link(feat["page"], label=feat["label"])
+
+# ---------------------------------------------------------------------------
+# DATA SNAPSHOT
+# ---------------------------------------------------------------------------
+st.markdown("---")
+st.markdown('<h2 class="section-title">Data Snapshot</h2>', unsafe_allow_html=True)
+st.caption(
+    "Survey programmes in the NISR microdata catalog, grouped by series. "
+    "Each row represents a recurring survey with one or more editions."
+)
+
+study_groups = build_study_groups(df)
+st.dataframe(
+    study_groups,
+    use_container_width=True,
+    hide_index=True,
+    column_config={
+        "Survey Series":   st.column_config.TextColumn("Survey Series",   width="large"),
+        "Frequency":       st.column_config.TextColumn("Frequency",       width="medium"),
+        "Years Conducted": st.column_config.TextColumn("Years Conducted", width="medium"),
+        "Organization(s)": st.column_config.TextColumn("Organization(s)", width="medium"),
+        "Total Resources": st.column_config.NumberColumn("Resources",     format="%d"),
+    },
+)
+
+with st.expander("Show all individual studies"):
     display_cols = [
         c for c in ["title", "year", "organization", "quality_level", "trust_score", "resource_count_computed"]
         if c in df.columns
     ]
-    st.dataframe(
-        df[display_cols],
-        use_container_width=True,
-        hide_index=True,
-    )
+    st.dataframe(df[display_cols], use_container_width=True, hide_index=True)
 
-# --- Footer ---
+# ---------------------------------------------------------------------------
+# FOOTER
+# ---------------------------------------------------------------------------
+st.markdown("---")
 st.markdown(
     """
-    <div style="text-align: center; padding: 2rem 0; color: #64748B; font-size: 0.85rem;">
-        <strong>GenderLens RW</strong> — GIZ Gender Responsive Budgeting Resource Discovery Challenge 2026<br>
-        Data source: <a href="https://microdata.statistics.gov.rw" target="_blank" style="color: #7C3AED;">
-        NISR Microdata Catalog</a>
+    <div class="gl-footer">
+        <strong>GenderLens RW</strong> &mdash;
+        GIZ Gender Responsive Budgeting &amp; Resource Discovery Challenge 2026<br>
+        Data source:
+        <a href="https://microdata.statistics.gov.rw" target="_blank">NISR Microdata Catalog</a>
+        &nbsp;&middot;&nbsp;
+        <a href="https://genderlab.statistics.gov.rw" target="_blank">NISR Gender Data Lab</a>
+        &nbsp;&middot;&nbsp;
+        <a href="https://www.statistics.gov.rw" target="_blank">statistics.gov.rw</a>
     </div>
     """,
     unsafe_allow_html=True,
